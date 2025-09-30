@@ -1,5 +1,5 @@
 # source .venv/bin/activate
-
+# streamlit run app.py
 
 
 import streamlit as st
@@ -58,7 +58,7 @@ if submit:
                     <h3 style="color:#2c5282;">🤖 اقتراحات الذكاء الاصطناعي للطالب رقم: {student_id}</h3>
                     <details>
                         <summary>عرض التوصيات</summary>
-                        <p style="margin-top:10px;">(هنا ستظهر مخرجات الذكاء الاصطناعي. يمكنك دمج LangChain/OpenAI هنا.)</p>
+                        <p style="margin-top:10px;">(هنا ستظهر مخرجات الذكاء الاصطناعي.)</p>
                     </details>
                 </div>
                 """,
