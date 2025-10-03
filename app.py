@@ -3,6 +3,7 @@
 
 
 import streamlit as st
+from final import generate_ai_suggestions
 
 # Page config
 st.set_page_config(page_title="أداة دعم اتخاذ القرار للمعلمين", layout="wide")
@@ -41,29 +42,52 @@ if submit:
     if not student_id or not prompt:
         st.warning("⚠️ يرجى ملء رقم الطالب والملاحظات قبل الإرسال.")
     else:
-        # Balloon effect
-        st.balloons()
-        
-        # AI response card
-        with st.container():
-            st.markdown(
-                f"""
-                <div style="
-                    background-color:#f0f4f8; 
-                    padding:25px; 
-                    border-radius:12px; 
-                    border-left:5px solid #2c5282;
-                    box-shadow: 2px 2px 12px rgba(0,0,0,0.1);
-                ">
-                    <h3 style="color:#2c5282;">🤖 اقتراحات الذكاء الاصطناعي للطالب رقم: {student_id}</h3>
-                    <details>
-                        <summary>عرض التوصيات</summary>
-                        <p style="margin-top:10px;">(هنا ستظهر مخرجات الذكاء الاصطناعي.)</p>
-                    </details>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        with st.spinner("جارٍ تحليل الملاحظة وتوليد التوصيات..."):
+            try:
+                result = generate_ai_suggestions(student_id, prompt)
+            except Exception as e:
+                st.error("حدث خطأ أثناء توليد الاقتراحات. يرجى المحاولة لاحقًا.")
+                st.exception(e)
+                result = None
+
+        if result:
+            st.balloons()
+            # AI response card
+            with st.container():
+                st.markdown(
+                    f"""
+                    <div style="
+                        background-color:#f0f4f8;
+                        padding:25px;
+                        border-radius:12px;
+                        border-left:5px solid #2c5282;
+                        box-shadow: 2px 2px 12px rgba(0,0,0,0.1);
+                        color: #000000;
+                    ">
+                        <h3 style="color:#2c5282;">🤖 اقتراحات الذكاء الاصطناعي للطالب رقم: {result.get('student_id','')}</h3>
+                        <p><strong>مستوى الخطورة:</strong> {result.get('risk_level','-')}</p>
+                        <p><strong>الإجراء الموصى به:</strong> {result.get('recommended_action','-')}</p>
+                        <details>
+                            <summary>عرض التفاصيل</summary>
+                            <div style="margin-top:10px;">
+                                <p><strong>الأسباب/المؤشرات:</strong></p>
+                                <ul>
+                                    {''.join(f'<li>{item}</li>' for item in result.get('rationale', []))}
+                                </ul>
+                                <p><strong>إجراءات فورية:</strong></p>
+                                <ul>
+                                    {''.join(f'<li>{item}</li>' for item in result.get('immediate_actions', []))}
+                                </ul>
+                                <p><strong>متابعة لاحقة:</strong></p>
+                                <ul>
+                                    {''.join(f'<li>{item}</li>' for item in result.get('follow_up', []))}
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
 
 
@@ -79,7 +103,7 @@ if submit:
 
 # st.title("Staff Decision-Support Tool")
 # st.divider()
-# st.write("""Enter your observations or concerns about a student. 
+# st.write("""Enter your observations or concerns about a student.
 #          The AI will suggest possible referral pathways to NCMH and ways to support the student.""")
 
 # prompt = st.text_input("Your prompt:")
